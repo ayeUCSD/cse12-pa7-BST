@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="pa7-starter/src"/>
+	<classpathentry kind="lib" path="pa7-starter/lib/hamcrest-core-1.3.jar"/>
+	<classpathentry kind="lib" path="pa7-starter/lib/junit-4.12.jar"/>
+	<classpathentry kind="output" path="pa7-starter/bin"/>
+</classpath>
