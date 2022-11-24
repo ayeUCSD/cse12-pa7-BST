@@ -23,13 +23,6 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	public Node<K, V> root;
 
 	/**
-	 * create a BST with root == node with k,v
-	 */
-	public BST(K key, V value) {
-		root = new Node<>(key, value, null);
-	}
-
-	/**
 	 * Recursive method that should get the parent of the node with the given key
 	 */
 
@@ -52,12 +45,18 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	 * recursive method that should return the node with the given key
 	 */
 	public Node<K, V> getKeyNode(Node<K, V> current, K key) {
+		if(current == null) {
+			return null;
+		}
 		if (current.getKey().equals(key)) {
+			//System.out.println(current.toString());
 			return current;
 		}
 		if (key.compareTo(current.key) < 1) {
+			//System.out.println(current.getRight().toString());
 			return getKeyNode(current.getLeft(), key);
 		} else { // else it HAS to be greater than!
+			//System.out.println(current.getRight().toString());
 			return getKeyNode(current.getRight(), key);
 		}
 	}
@@ -78,6 +77,14 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		if (key == null) {
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
 		}
+
+		if(root == null){
+			root = new Node<>(key, value, null);
+			keyList.add(key);
+			return true;
+		}
+
+
 		Node<K, V> temp = getParent(root, key);
 		// temp should be the parent of where we need to put
 		// use compareTo on the key to go left or right
@@ -133,7 +140,7 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
 		}
 
-		if (!keyList.contains(key)) {
+		if (!keyList.contains(key) || size() == 0) {
 			return false;
 		}
 
@@ -143,6 +150,7 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		// 3.) two children
 		// go right
 		if (temp.getRight() != null) { // if right child is not missing, we go
+			System.out.println("Case 3");
 			temp = temp.getRight();
 			// go all the way left
 			while (temp.getLeft() != null) {
@@ -154,6 +162,11 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 			temp.parent = current.parent;
 			temp.left = current.left;
 			temp.right = current.right;
+
+			//update root if we just removed it
+			if(key.equals(root.key)){
+				root = temp;
+			}
 			keyList.remove(key);
 			return true;
 			// ig java garbage collection picks up current??? since nothing is pointing to
@@ -161,24 +174,39 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		}
 
 		// 2.) one child, replace self
-		if (current.getLeft() != null) {
+		if (temp.getLeft() != null) {
+			System.out.println("Case 2");
 			temp = current.left;
 
 			temp.parent = current.parent;
 			temp.left = current.left;
 			temp.right = current.right;
+			if(key.equals(root.key)){
+				root = temp;
+			}
 			keyList.remove(key);
 			return true;
 		}
+
+		System.out.println("Case 1");
 		// case 1 no children
 		// become your parent
+		if(root == current){
+			root = null;
+			return true;
+		}
 		current = current.getParent();
 		// kill your child
-		if (current.getLeft().getKey().equals(key)) {
+		if(current.left != null && current.getLeft().equals(temp)){
 			current.left = null;
-		} else {
+		}
+		else{
 			current.right = null;
 		}
+		if(key.equals(root.key)){
+			root = current;
+		}
+
 		keyList.remove(key);
 		return true;
 		
@@ -192,17 +220,9 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		return current;
 	}
 
-	/**
-	 * If n has a right child //Case 1
-	 * Traverse to the right child and then attempt to traverse left as many times
-	 * as possible
-	 * Return current node
-	 * Else //Case 2
-	 * Traverse upwards until the current node is its parent's left child //Careful
-	 * for null!
-	 * Return current node's parent
-	 * 
-	 */
+	public String nodeToString(Node<K,V> node){
+		return node.toString();
+	}
 
 	/**
 	 * Adds the key, value pair to this DefaultMap if it is not present,
@@ -227,8 +247,14 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	public V get(K key) throws IllegalArgumentException {
 		if (key == null) {
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
+		} else if(keyList.size() == 0){
+			return null;
 		}
+
 		Node<K, V> temp = getKeyNode(root, key);
+		if(temp == null || !temp.key.equals(key)){
+			return null;
+		}
 		return temp.value;
 	}
 
@@ -298,6 +324,10 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		@Override
 		public void setValue(V value) {
 			this.value = value;
+		}
+
+		public String toString(){
+			return "NODE | key: " + key.toString() + " | value: " + value.toString();
 		}
 
 	}
