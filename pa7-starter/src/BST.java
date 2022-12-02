@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import java.util.Stack;
 
@@ -45,18 +46,18 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	 * recursive method that should return the node with the given key
 	 */
 	public Node<K, V> getKeyNode(Node<K, V> current, K key) {
-		if(current == null) {
+		if (current == null) {
 			return null;
 		}
 		if (current.getKey().equals(key)) {
-			//System.out.println(current.toString());
+			// System.out.println(current.toString());
 			return current;
 		}
 		if (key.compareTo(current.key) < 1) {
-			//System.out.println(current.getRight().toString());
+			// System.out.println(current.getRight().toString());
 			return getKeyNode(current.getLeft(), key);
 		} else { // else it HAS to be greater than!
-			//System.out.println(current.getRight().toString());
+			// System.out.println(current.getRight().toString());
 			return getKeyNode(current.getRight(), key);
 		}
 	}
@@ -77,20 +78,18 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		if (key == null) {
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
 		}
-
-		if(root == null){
+		if (keyList.contains(key)) {
+			return false;
+		}
+		if (root == null) {
 			root = new Node<>(key, value, null);
 			keyList.add(key);
 			return true;
 		}
 
-
 		Node<K, V> temp = getParent(root, key);
 		// temp should be the parent of where we need to put
 		// use compareTo on the key to go left or right
-		if (keyList.contains(key)) {
-			return false;
-		}
 
 		if (key.compareTo(temp.key) < 1) {
 			temp.left = new Node<>(key, value, temp);
@@ -139,77 +138,60 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		if (key == null) {
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
 		}
-
 		if (!keyList.contains(key) || size() == 0) {
 			return false;
 		}
 
-		Node<K, V> current = getKeyNode(root, key);
-		Node<K, V> temp = current;
+		keyList.remove(key); // remove key early
 
-		// 3.) two children
-		// go right
-		if (temp.getRight() != null) { // if right child is not missing, we go
-			System.out.println("Case 3");
-			temp = temp.getRight();
-			// go all the way left
-			while (temp.getLeft() != null) {
-				temp = temp.getLeft();
-			}
-			// remove temp leaf
-			temp.getParent().left = null;
-			// nepotism
-			temp.parent = current.parent;
-			temp.left = current.left;
-			temp.right = current.right;
+		Node<K, V> current = getParent(root, key);
+		Node<K, V> marked = getKeyNode(root, key); // MARKED FOR DEATH
 
-			//update root if we just removed it
-			if(key.equals(root.key)){
-				root = temp;
-			}
-			keyList.remove(key);
-			return true;
-			// ig java garbage collection picks up current??? since nothing is pointing to
-			// it afterwards
-		}
+		// CHECK FOR 2 CHILDREN AKA CASE 3
+		if (marked.getLeft() != null && marked.getRight() != null) {
+			Node<K, V> successor = findSuccessor(marked);
+			// remove successor from its original place
+			remove(successor.key);
 
-		// 2.) one child, replace self
-		if (temp.getLeft() != null) {
-			System.out.println("Case 2");
-			temp = current.left;
-
-			temp.parent = current.parent;
-			temp.left = current.left;
-			temp.right = current.right;
-			if(key.equals(root.key)){
-				root = temp;
-			}
-			keyList.remove(key);
+			// copy values from sucessor to marked
+			marked.key = successor.key;
+			marked.value = successor.value;
 			return true;
 		}
 
-		System.out.println("Case 1");
-		// case 1 no children
-		// become your parent
-		if(root == current){
-			root = null;
+
+
+		// case 1, no children, you die alone
+		if (marked.left == null && marked.right == null) {
+			if (marked == root) { // if we have no parent, then we HAVE to be the root
+				root = null;
+				return true;
+			}
+
+			marked.parent = null;
+			if (current.left == marked) {
+				current.left = null;
+			} else {
+				current.right = null;
+			}
 			return true;
 		}
-		current = current.getParent();
-		// kill your child
-		if(current.left != null && current.getLeft().equals(temp)){
-			current.left = null;
-		}
-		else{
-			current.right = null;
-		}
-		if(key.equals(root.key)){
-			root = current;
+
+
+		// CASE 2, this is only for 1 child
+		Node<K, V> child = marked.getLeft();
+		if (child == null) {// if yoru left child DOESN'T exist get the right one instead
+			child = marked.getRight();
 		}
 
-		keyList.remove(key);
+		//clone values
+		marked.key = child.key;
+		marked.value = child.value;
+		marked.left = child.left;
+		marked.right = child.right;
 		return true;
 		
+
 	}
 
 	public Node<K, V> findSuccessor(Node<K, V> current) {
@@ -220,7 +202,7 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 		return current;
 	}
 
-	public String nodeToString(Node<K,V> node){
+	public String nodeToString(Node<K, V> node) {
 		return node.toString();
 	}
 
@@ -247,12 +229,12 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	public V get(K key) throws IllegalArgumentException {
 		if (key == null) {
 			throw new IllegalArgumentException(ILLEGAL_ARG_NULL_KEY);
-		} else if(keyList.size() == 0){
+		} else if (keyList.isEmpty()) {
 			return null;
 		}
 
 		Node<K, V> temp = getKeyNode(root, key);
-		if(temp == null || !temp.key.equals(key)){
+		if (temp == null || !temp.key.equals(key)) {
 			return null;
 		}
 		return temp.value;
@@ -281,7 +263,26 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 	// You must do inorder traversal of the tree
 	@Override
 	public List<K> keys() {
-		return keyList;
+		List<K> list = keyRecursive(new ArrayList<K>(), root);
+		return list;
+	}
+	public List<K> keyRecursive(List<K> list, Node<K,V> node){
+		if(node == null){
+			return list;
+		}
+		list.add(node.getKey());
+		keyRecursive(list, node.getLeft());
+		keyRecursive(list, node.getRight());
+		return list;
+	}
+
+	public String toString(Node<K, V> node) {
+		if (node == null) {
+			return "";
+		}
+		String output = "";
+		output = node.toString() + toString(node.getLeft()) + toString(node.getRight());
+		return output;
 	}
 
 	private static class Node<K extends Comparable<? super K>, V>
@@ -326,8 +327,8 @@ public class BST<K extends Comparable<? super K>, V> implements DefaultMap<K, V>
 			this.value = value;
 		}
 
-		public String toString(){
-			return "NODE | key: " + key.toString() + " | value: " + value.toString();
+		public String toString() {
+			return "[" + key.toString() + ", " + value.toString() + "]";
 		}
 
 	}

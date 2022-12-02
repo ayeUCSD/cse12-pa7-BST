@@ -1,0 +1,88 @@
+//OLD RECURSIVE METHOD
+@Override
+	public List<K> keys() {
+		List<K> list = keyRecursive(new ArrayList<K>(), root);
+		return list;
+	}
+	public List<K> keyRecursive(List<K> list, Node<K,V> node){
+		if(node == null){
+			return list;
+		}
+		list.add(node.getKey());
+		keyRecursive(list, node.getLeft());
+		keyRecursive(list, node.getRight());
+		return list;
+	}
+
+
+//OLD REMOVE BODY 
+
+		Node<K, V> current = getKeyNode(root, key);
+		Node<K, V> temp = current;
+
+		// 3.) two children
+		// go right
+		if (temp.getRight() != null) { // if right child is not missing, we go
+			System.out.println("Case 3");
+			temp = temp.getRight();
+			// go all the way left
+			while (temp.getLeft() != null) {
+				temp = temp.getLeft();
+			}
+			// remove temp leaf
+			temp.getParent().left = null;
+			// nepotism
+			temp.parent = current.parent;
+			temp.left = current.left;
+			temp.right = current.right;
+
+			//update root if we just removed it
+			if(key.equals(root.key)){
+				root = temp;
+			}
+			keyList.remove(key);
+			return true;
+			// ig java garbage collection picks up current??? since nothing is pointing to
+			// it afterwards
+		}
+
+		// 2.) one child, replace self
+		if (temp.getLeft() != null) {
+			System.out.println("Case 2");
+			temp = current.left;
+
+			temp.parent = current.parent;
+			//temp.left = current.left;
+			temp.right = current.right;
+			if(key.equals(root.key)){
+				root = temp;
+			}
+			keyList.remove(key);
+			return true;
+		}
+
+		System.out.println("Case 1");
+		// case 1 no children
+		// become your parent
+		if(root == current){
+			root = null;
+			return true;
+		}
+		current = current.getParent();
+		// kill your child
+		if(current.left != null && current.getLeft().equals(temp)){
+			current.left = null;
+		}
+		else{
+			current.right = null;
+		}
+		if(key.equals(root.key)){
+			root = current;
+		}
+
+		keyList.remove(key);
+		return true;
+
+
+
+

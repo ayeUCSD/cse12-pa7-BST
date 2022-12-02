@@ -1,0 +1,5 @@
+aaaaaaaaa.txt, /home, 2021/02/01
+eeeeeeeee.txt, /user, 2021/02/08
+bbbbbbbbb.txt, /root, 2021/02/01
+ccccccccc.txt, /user, 2021/02/06
+ddddddddd.txt, /user, 2021/02/09
